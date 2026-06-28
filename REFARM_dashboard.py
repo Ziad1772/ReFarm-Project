@@ -1166,13 +1166,6 @@ elif "الحصاد" in page or "التربة" in page:
             fig4.update_layout(xaxis_title="نوع التربة", yaxis_title="متوسط المخلفات (طن)")
             farm_layout(fig4, "المخلفات: التربة × طريقة الحصاد")
             st.plotly_chart(fig4, use_container_width=True)
-
-        
-        
-
-        plt.suptitle("مقارنة المؤشرات الرئيسية: التربة والحصاد",
-                    color="#2D5016", fontsize=13, y=1.01, fontweight="bold")
-        plt.tight_layout()
         
 
     with tabs_hs[3]:
