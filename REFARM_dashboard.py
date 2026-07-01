@@ -1316,22 +1316,17 @@ elif "نموذج" in page or "التنبؤ" in page:
                                     min_samples_leaf=3, random_state=42, n_jobs=-1)
         rf.fit(X_tr, y_tr); return rf
 
-    @st.cache_resource
-    def train_gbm(X_tr, y_tr):
-        gb = GradientBoostingRegressor(n_estimators=150, max_depth=6,
-                                        learning_rate=0.1, random_state=42)
-        gb.fit(X_tr, y_tr); return gb
+    
 
     model_rf  = train_rf(X_train, y_train)
-    model_gbm = train_gbm(X_train, y_train)
+
 
     y_pred_rf  = model_rf.predict(X_test)
-    y_pred_gbm = model_gbm.predict(X_test)
+  
 
     r2_rf    = r2_score(y_test, y_pred_rf);   mae_rf  = mean_absolute_error(y_test, y_pred_rf)
     rmse_rf  = np.sqrt(mean_squared_error(y_test, y_pred_rf))
-    r2_gbm   = r2_score(y_test, y_pred_gbm);  mae_gbm = mean_absolute_error(y_test, y_pred_gbm)
-    rmse_gbm = np.sqrt(mean_squared_error(y_test, y_pred_gbm))
+   
 
     model  = model_rf
     y_pred = y_pred_rf
@@ -1371,7 +1366,7 @@ elif "نموذج" in page or "التنبؤ" in page:
         ]], columns=features)
 
         pred_rf_val  = model_rf.predict(input_data)[0]
-        pred_gbm_val = model_gbm.predict(input_data)[0]
+       
         prediction   = pred_rf_val
 
         st.markdown("---")
