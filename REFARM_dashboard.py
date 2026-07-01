@@ -1483,7 +1483,7 @@ elif "نموذج" in page or "التنبؤ" in page:
 
         st.markdown("---")
 
-        res1, res2, res3 = st.columns(3)
+        res1, res2 = st.columns(2)
 
         with res1:
             st.metric(
@@ -1492,15 +1492,6 @@ elif "نموذج" in page or "التنبؤ" in page:
             )
 
         with res2:
-            diff = prediction - df_raw["waste_tons"].mean()
-
-            st.metric(
-                "📈 الفرق عن المتوسط",
-                f"{diff:+.2f} طن",
-                delta="أعلى" if diff > 0 else "أقل"
-            )
-
-        with res3:
 
             cost = prediction * price_per_ton
 
