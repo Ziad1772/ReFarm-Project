@@ -1324,10 +1324,6 @@ elif "نموذج" in page or "التنبؤ" in page:
     y_pred_rf  = model_rf.predict(X_test)
   
 
-    r2_rf    = r2_score(y_test, y_pred_rf);   mae_rf  = mean_absolute_error(y_test, y_pred_rf)
-    rmse_rf  = np.sqrt(mean_squared_error(y_test, y_pred_rf))
-   
-
     model  = model_rf
     y_pred = y_pred_rf
 
