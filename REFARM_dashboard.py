@@ -1286,116 +1286,260 @@ elif "الخريطة" in page or "خريطة" in page:
 #  PAGE 7 – نموذج_التنبؤ
 # ═══════════════════════════════════════════════════════════════════════════════
 elif "نموذج" in page or "التنبؤ" in page:
-    st.markdown('<div class="page-title">🤖 نموذج الذكاء الاصطناعي – التنبؤ بكميات المخلفات</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="page-title">🤖 نموذج الذكاء الاصطناعي – التنبؤ بكميات المخلفات</div>',
+        unsafe_allow_html=True
+    )
 
     @st.cache_data
     def prepare_ml_data(dataframe):
+
         df_ml = dataframe.copy()
-        le_crop    = LabelEncoder(); le_harvest = LabelEncoder()
-        le_soil    = LabelEncoder(); le_center  = LabelEncoder()
-        df_ml["crop_enc"]    = le_crop.fit_transform(df_ml["crop_type"])
+
+        le_crop = LabelEncoder()
+        le_harvest = LabelEncoder()
+        le_soil = LabelEncoder()
+        le_center = LabelEncoder()
+
+        df_ml["crop_enc"] = le_crop.fit_transform(df_ml["crop_type"])
         df_ml["harvest_enc"] = le_harvest.fit_transform(df_ml["harvest_method"])
-        df_ml["soil_enc"]    = le_soil.fit_transform(df_ml["soil_type"])
-        df_ml["center_enc"]  = le_center.fit_transform(df_ml["center"])
+        df_ml["soil_enc"] = le_soil.fit_transform(df_ml["soil_type"])
+        df_ml["center_enc"] = le_center.fit_transform(df_ml["center"])
+
         return df_ml, le_crop, le_harvest, le_soil, le_center
+
 
     df_ml, le_crop, le_harvest, le_soil, le_center = prepare_ml_data(df_raw)
 
+    # تم حذف waste_ratio
     features = [
-        "area_feddan","yield_per_feddan","total_yield","waste_ratio",
-        "temperature","humidity","rainfall",
-        "crop_enc","harvest_enc","soil_enc","center_enc"
+        "area_feddan",
+        "yield_per_feddan",
+        "total_yield",
+        "temperature",
+        "humidity",
+        "rainfall",
+        "crop_enc",
+        "harvest_enc",
+        "soil_enc",
+        "center_enc"
     ]
+
     target = "waste_tons"
-    X = df_ml[features]; y = df_ml[target]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    X = df_ml[features]
+    y = df_ml[target]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42
+    )
+
 
     @st.cache_resource
     def train_rf(X_tr, y_tr):
-        rf = RandomForestRegressor(n_estimators=200, max_depth=12,
-                                    min_samples_leaf=3, random_state=42, n_jobs=-1)
-        rf.fit(X_tr, y_tr); return rf
 
-    
+        rf = RandomForestRegressor(
+            n_estimators=200,
+            max_depth=12,
+            min_samples_leaf=3,
+            random_state=42,
+            n_jobs=-1
+        )
 
-    model_rf  = train_rf(X_train, y_train)
+        rf.fit(X_tr, y_tr)
+
+        return rf
 
 
-    y_pred_rf  = model_rf.predict(X_test)
-  
+    model_rf = train_rf(X_train, y_train)
 
-    model  = model_rf
+    y_pred_rf = model_rf.predict(X_test)
+
+    model = model_rf
     y_pred = y_pred_rf
 
 
     st.markdown("---")
-    st.markdown('<div class="section-header">🔮 تنبأ بكمية المخلفات لمزرعتك</div>', unsafe_allow_html=True)
+
+    st.markdown(
+        '<div class="section-header">🔮 تنبأ بكمية المخلفات لمزرعتك</div>',
+        unsafe_allow_html=True
+    )
 
     col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+
     with col_f1:
-        p_center  = st.selectbox("📍 المركز",        df_raw["center"].unique())
-        p_crop    = st.selectbox("🌾 نوع المحصول",   df_raw["crop_type"].unique())
+
+        p_center = st.selectbox(
+            "📍 المركز",
+            df_raw["center"].unique()
+        )
+
+        p_crop = st.selectbox(
+            "🌾 نوع المحصول",
+            df_raw["crop_type"].unique()
+        )
+
     with col_f2:
-        p_harvest = st.selectbox("🚜 طريقة الحصاد",  df_raw["harvest_method"].unique())
-        p_soil    = st.selectbox("🪨 نوع التربة",     df_raw["soil_type"].unique())
-        price_per_ton = st.slider("💰 سعر المخلفات/طن (جنيه)", 100, 1000, 400, 50)
+
+        p_harvest = st.selectbox(
+            "🚜 طريقة الحصاد",
+            df_raw["harvest_method"].unique()
+        )
+
+        p_soil = st.selectbox(
+            "🪨 نوع التربة",
+            df_raw["soil_type"].unique()
+        )
+
+        price_per_ton = st.slider(
+            "💰 سعر المخلفات/طن (جنيه)",
+            100,
+            1000,
+            400,
+            50
+        )
+
     with col_f3:
-        p_area    = st.number_input("📐 المساحة (فدان)",  min_value=1.0,  max_value=20.0, value=8.0,  step=0.5)
-        p_ypf     = st.number_input("📊 الإنتاجية/فدان",  min_value=1.0,  max_value=50.0, value=10.0, step=0.5)
-        p_total   = p_area * p_ypf
-        st.metric("🌾 الإنتاج المتوقع", f"{p_total:.1f} طن")
+
+        p_area = st.number_input(
+            "📐 المساحة (فدان)",
+            min_value=1.0,
+            max_value=20.0,
+            value=8.0,
+            step=0.5
+        )
+
+        p_ypf = st.number_input(
+            "📊 الإنتاجية/فدان",
+            min_value=1.0,
+            max_value=50.0,
+            value=10.0,
+            step=0.5
+        )
+
+        p_total = p_area * p_ypf
+
+        st.metric(
+            "🌾 الإنتاج المتوقع",
+            f"{p_total:.1f} طن"
+        )
+
     with col_f4:
-        p_ratio    = st.slider("⚠️ نسبة المخلفات",   0.05, 0.60, 0.25, 0.01, format="%.2f")
-        p_temp     = st.slider("🌡️ الحرارة (°C)",    15.0, 45.0, 30.0, 0.5)
-        p_humidity = st.slider("💧 الرطوبة (%)",      30.0, 80.0, 55.0, 1.0)
-        p_rain     = st.slider("🌧️ الأمطار (mm)",      0.0, 10.0,  5.0, 0.1)
+
+        # تم حذف p_ratio
+
+        p_temp = st.slider(
+            "🌡️ الحرارة (°C)",
+            15.0,
+            45.0,
+            30.0,
+            0.5
+        )
+
+        p_humidity = st.slider(
+            "💧 الرطوبة (%)",
+            30.0,
+            80.0,
+            55.0,
+            1.0
+        )
+
+        p_rain = st.slider(
+            "🌧️ الأمطار (mm)",
+            0.0,
+            10.0,
+            5.0,
+            0.1
+        )
 
     st.markdown("---")
+
     if st.button("🔮 تنبؤ بكمية المخلفات الآن"):
+
         input_data = pd.DataFrame([[
-            p_area, p_ypf, p_total, p_ratio,
-            p_temp, p_humidity, p_rain,
+
+            p_area,
+            p_ypf,
+            p_total,
+
+            p_temp,
+            p_humidity,
+            p_rain,
+
             le_crop.transform([p_crop])[0],
             le_harvest.transform([p_harvest])[0],
             le_soil.transform([p_soil])[0],
             le_center.transform([p_center])[0]
+
         ]], columns=features)
 
-        pred_rf_val  = model_rf.predict(input_data)[0]
-       
-        prediction   = pred_rf_val
+        pred_rf_val = model_rf.predict(input_data)[0]
+
+        prediction = pred_rf_val
 
         st.markdown("---")
-        res1, res2, res3, res4 = st.columns(4)
-        with res1: st.metric("كمية المخلفات المتنباء بها",    f"{pred_rf_val:.2f} طن")
-        
-        with res2: st.metric(" متوسط المخلفات للمزارع المشابهة", f"{df_raw['waste_tons'].mean():.2f} طن")
-        with res3:
-            diff = prediction - df_raw['waste_tons'].mean()
-            st.metric("📈 الفرق عن المتوسط", f"{diff:+.2f} طن",
-                    delta="أعلى" if diff > 0 else "أقل")
-        with res4:
-            cost = prediction * price_per_ton
-            st.metric("💰 التكلفة المتوقعة", f"{round(cost):,} جنيها")
 
-        
+        res1, res2, res3 = st.columns(3)
+
+        with res1:
+            st.metric(
+                "كمية المخلفات المتنبأ بها",
+                f"{pred_rf_val:.2f} طن"
+            )
+
+        with res2:
+            diff = prediction - df_raw["waste_tons"].mean()
+
+            st.metric(
+                "📈 الفرق عن المتوسط",
+                f"{diff:+.2f} طن",
+                delta="أعلى" if diff > 0 else "أقل"
+            )
+
+        with res3:
+
+            cost = prediction * price_per_ton
+
+            st.metric(
+                "💰 التكلفة المتوقعة",
+                f"{round(cost):,} جنيها"
+            )
 
         q75 = df_raw["waste_tons"].quantile(0.75)
         q25 = df_raw["waste_tons"].quantile(0.25)
+
         if prediction > q75:
-            advice = (f"⚠️ <b>كمية مرتفعة ({prediction:.1f} طن)</b> — يُنصح بمراجعة طريقة الحصاد "
-                        f"والتفكير في تحويل المخلفات لكمبوست أو طاقة حيوية. "
-                        f"الحصاد الآلي قد يقلل المخلفات بنسبة تصل إلى 20%.")
+
+            advice = (
+                f"⚠️ كمية مرتفعة ({prediction:.1f} طن)"
+            )
+
             cls = "danger"
+
         elif prediction > q25:
-            advice = (f"ℹ️ <b>كمية متوسطة ({prediction:.1f} طن)</b> — يمكن تحسينها بتطوير التخزين "
-                        f"ومعالجة المخلفات، واستخدام تقنيات الحصاد الموفِّرة للمحصول.")
+
+            advice = (
+                f"ℹ️ كمية متوسطة ({prediction:.1f} طن)"
+            )
+
             cls = ""
+
         else:
-            advice = (f"✅ <b>كمية منخفضة ({prediction:.1f} طن)</b> — أداء ممتاز! "
-                        f"يمكن الاستفادة من هذه المخلفات في إنتاج سماد عضوي عالي الجودة لتحسين خصوبة التربة.")
+
+            advice = (
+                f"✅ كمية منخفضة ({prediction:.1f} طن)"
+            )
+
             cls = "success"
-        st.markdown(f'<div class="insight-box {cls}">{advice}</div>', unsafe_allow_html=True)
+
+        st.markdown(
+            f'<div class="insight-box {cls}">{advice}</div>',
+            unsafe_allow_html=True
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
